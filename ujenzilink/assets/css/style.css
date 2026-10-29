@@ -338,3 +338,9 @@ footer { background: var(--navy); padding: 64px 0 32px; }
   .hero p { font-size: 1rem; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* Line icons (replace emojis) */
+.ico{width:1.45em;height:1.45em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0}
+h2>.ico,h3>.ico{width:1.1em;height:1.1em;margin-right:6px;position:relative;top:-1px}
+div[style*="teal-pale"]>.ico{color:var(--teal)}
+.problem-card-icon{color:var(--navy)}
