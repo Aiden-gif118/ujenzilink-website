@@ -1,8 +1,6 @@
-// ═══════════════════════════════════════════
-// UJENZILINK — SHARED SCRIPT
-// ═══════════════════════════════════════════
+// UJENZILINK - SHARED SCRIPT
 
-// ── Mobile nav toggle ──
+// Mobile nav toggle
 document.addEventListener('DOMContentLoaded', function () {
   var toggle = document.querySelector('.nav-toggle');
   var links = document.querySelector('.nav-links');
@@ -11,71 +9,59 @@ document.addEventListener('DOMContentLoaded', function () {
       var isOpen = links.classList.toggle('open');
       toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
-    // close menu on link click (mobile)
     links.querySelectorAll('a').forEach(function (a) {
       a.addEventListener('click', function () { links.classList.remove('open'); });
     });
   }
 
-  // ── FAQ accordion ──
+  // FAQ accordion
   document.querySelectorAll('.faq-item').forEach(function (item) {
     var btn = item.querySelector('.faq-q-btn');
     if (!btn) return;
     btn.addEventListener('click', function () {
       var isOpen = item.classList.contains('open');
-      // close siblings within the same faq group (optional accordion behavior per-section)
       item.classList.toggle('open', !isOpen);
       btn.setAttribute('aria-expanded', !isOpen ? 'true' : 'false');
     });
   });
 });
 
-// ═══════════════════════════════════════════
-// GOOGLE APPS SCRIPT FORM SUBMISSION
-// ═══════════════════════════════════════════
-// 1. Set up your Google Sheet + Apps Script Web App (see apps-script-template.gs)
-// 2. Deploy it as a Web App ("Execute as: Me", "Who has access: Anyone")
-// 3. Paste the deployment URL below.
-var UJENZILINK_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx039Adio5VN9hRs9v2WewcvNl5hmKgaw9oza6TQ7gCC5UWRCIwVRAClm2xnyva66sUDg/exec";
+// FORM SUBMISSION -> FIREBASE (see assets/js/leads.js)
+// The function keeps its old name so the pages that call it need no changes.
+var LEAD_FIELDS = ['phone', 'email', 'projectType', 'currentStage', 'managedBy',
+  'mainConcern', 'budgetRange', 'ownerType', 'preferredContact', 'subject', 'message'];
+var LEAD_LIMITS = { phone: 40, email: 200, mainConcern: 2000, subject: 200, message: 2000, preferredContact: 50 };
 
-/**
- * Submits a form's data to the Apps Script Web App as JSON.
- * Shows inline success/error status without leaving the page.
- */
-function submitToSheet(formEl, statusEl, sheetName) {
-  // Honeypot spam check — if filled, silently "succeed" and stop (bots only)
+function submitToSheet(formEl, statusEl, formType) {
+  // Honeypot: bots fill the hidden field, so pretend it worked and stop.
   var honeypot = formEl.querySelector('.honeypot input');
   if (honeypot && honeypot.value.trim() !== '') {
     showStatus(statusEl, 'success', 'Thank you! We will be in touch within 24 hours.');
     formEl.reset();
     return;
   }
+  if (!formEl.reportValidity()) return;
 
-  if (!UJENZILINK_SCRIPT_URL || UJENZILINK_SCRIPT_URL.indexOf('PASTE_YOUR') === 0) {
-    showStatus(statusEl, 'error', 'Form is not yet connected. Please contact us directly via WhatsApp or email for now.');
-    return;
-  }
+  var f = {};
+  new FormData(formEl).forEach(function (value, key) { f[key] = String(value).trim(); });
 
-  var data = {};
-  new FormData(formEl).forEach(function (value, key) {
-    if (key.indexOf('honeypot') === -1) data[key] = value;
+  var lead = {
+    type: formType === 'ProjectReview' ? 'ProjectReview' : 'Contact',
+    name: (f.fullName || f.name || '').slice(0, 120),
+    pageUrl: (window.location.origin + window.location.pathname).slice(0, 300)
+  };
+  if (f.projectLocation) lead.location = f.projectLocation.slice(0, 200);
+  LEAD_FIELDS.forEach(function (k) {
+    if (f[k]) lead[k] = f[k].slice(0, LEAD_LIMITS[k] || 100);
   });
-  data.sheet = sheetName;
-  data.submittedAt = new Date().toISOString();
-  data.pageUrl = window.location.href;
 
   var submitBtn = formEl.querySelector('button[type="submit"]');
   if (submitBtn) submitBtn.disabled = true;
-  showStatus(statusEl, 'loading', 'Sending…');
+  showStatus(statusEl, 'loading', 'Sending...');
 
-  fetch(UJENZILINK_SCRIPT_URL, {
-    method: 'POST',
-    mode: 'no-cors', // Apps Script web apps often require no-cors from browser fetch
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // avoids CORS preflight
-    body: JSON.stringify(data)
-  })
+  import('./leads.js')
+    .then(function (m) { return m.saveLead(lead); })
     .then(function () {
-      // no-cors mode means we can't read the response — assume success if no network error
       showStatus(statusEl, 'success', 'Thank you! We will be in touch within 24 hours.');
       formEl.reset();
     })

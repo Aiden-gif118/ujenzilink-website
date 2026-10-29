@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Leads - UjenziLink Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#14213d;--teal:#0f766e;--bg:#f5f6f3;--line:#dfe2dc;--muted:#5d6676;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;font:15px/1.5 Inter,system-ui,sans-serif;color:var(--navy);background:var(--bg)}
+h1,h2{font-family:'DM Serif Display',serif;font-weight:400;margin:0}
+button,select,input,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.btn{background:var(--teal);color:#fff;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;font-weight:600}
+.btn.ghost{background:none;color:var(--navy);border:1px solid var(--line)}
+.btn.danger{background:none;color:#b42318;border:1px solid #f0c9c4}
+.field{width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:8px;background:#fff}
+#login{max-width:340px;margin:18vh auto;padding:0 20px}
+#login h1{font-size:1.9rem;margin-bottom:8px}
+#login p{color:var(--muted);margin:0 0 18px}
+#err{color:#b42318;min-height:1.4em;font-size:.875rem;margin-top:10px}
+#app{display:none;max-width:1100px;margin:0 auto;padding:24px 20px 60px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+header h1{font-size:1.8rem}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tab{background:none;border:0;padding:10px 16px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab[aria-selected=true]{color:var(--navy);border-color:var(--teal);font-weight:600}
+.tools{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.tools .field{max-width:280px}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;cursor:pointer;font-size:.8125rem}
+.chip[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.wrap{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th{text-align:left;font-size:.8125rem;color:var(--muted);font-weight:500;padding:10px 14px;border-bottom:1px solid var(--line)}
+td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+tr[data-id]{cursor:pointer}
+tr[data-id]:hover{background:#f0f4f1}
+tr:last-child td{border-bottom:0}
+tr.new td:nth-child(2){font-weight:600}
+.st{display:inline-block;padding:2px 10px;border-radius:999px;font-size:.8125rem;background:#eceef2}
+.st-New{background:#fff1d6;color:#8a5a00}.st-Contacted{background:#dbeafe;color:#1e4fa0}
+.st-Site-visit-booked{background:#e6defa;color:#5b3aa8}.st-Won{background:#d5f2e3;color:#146c43}.st-Lost{background:#eceef2;color:var(--muted)}
+.empty{padding:40px;text-align:center;color:var(--muted)}
+dialog{border:0;border-radius:12px;padding:0;width:min(560px,94vw);max-height:90vh}
+dialog::backdrop{background:rgba(20,33,61,.45)}
+.d{padding:24px;overflow:auto;max-height:90vh}
+.d h2{font-size:1.5rem;margin-bottom:4px}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0 18px}
+.links a{color:var(--teal);font-weight:600;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:6px 12px;font-size:.875rem}
+dl{margin:0 0 18px;display:grid;grid-template-columns:140px 1fr;gap:8px 14px;font-size:.9rem}
+dt{color:var(--muted)}dd{margin:0;overflow-wrap:anywhere;white-space:pre-wrap}
+label{display:block;font-size:.8125rem;color:var(--muted);margin:12px 0 4px}
+textarea.field{min-height:90px;resize:vertical}
+.foot{display:flex;gap:8px;justify-content:flex-end;align-items:center;margin-top:16px;flex-wrap:wrap}
+#msg{margin-right:auto;font-size:.875rem;color:var(--muted)}
+@media(max-width:520px){dl{grid-template-columns:1fr;gap:2px}dt{margin-top:8px}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <h1>UjenziLink admin</h1>
+  <p>Sign in with your Google account.</p>
+  <button class="btn" id="signin" style="width:100%">Sign in with Google</button>
+  <div id="err" role="alert"></div>
+</div>
+
+<div id="app">
+  <header>
+    <h1>Leads</h1>
+    <button class="btn ghost" id="logout">Sign out</button>
+  </header>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="ProjectReview">Project reviews</button>
+    <button class="tab" role="tab" data-tab="Contact">Contact messages</button>
+  </div>
+  <div class="tools">
+    <input class="field" type="search" id="q" placeholder="Search name, phone, location..." aria-label="Search leads">
+    <div id="chips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+  <div class="wrap"><table><thead id="thead"></thead><tbody id="tbody"></tbody></table></div>
+</div>
+
+<dialog id="dlg"><div class="d" id="detail"></div></dialog>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const ADMIN_EMAIL = 'aidenknasterthuo@gmail.com';
+const app = initializeApp({
+  apiKey: "AIzaSyD_n3Plzf7nx_AiwLEzCf5EgsGARtpHqDM",
+  authDomain: "ujenzilink-f60c5.firebaseapp.com",
+  projectId: "ujenzilink-f60c5",
+  storageBucket: "ujenzilink-f60c5.firebasestorage.app",
+  messagingSenderId: "406394005237",
+  appId: "1:406394005237:web:f5bd425c8f8a68618c07bc"
+});
+const auth = getAuth(app), db = getFirestore(app);
+
+const STATUSES = ['New', 'Contacted', 'Site visit booked', 'Won', 'Lost'];
+const LABEL = { createdAt: 'Received', name: 'Name', phone: 'Phone', email: 'Email', location: 'Location',
+  projectType: 'Project type', currentStage: 'Stage', managedBy: 'Managed by', budgetRange: 'Budget',
+  ownerType: 'Local or diaspora', preferredContact: 'Preferred contact', mainConcern: 'Main concern',
+  subject: 'Subject', message: 'Message', pageUrl: 'Page' };
+const COLS = {
+  ProjectReview: ['createdAt', 'name', 'phone', 'location', 'projectType', 'currentStage', 'budgetRange', 'ownerType', 'preferredContact', 'status'],
+  Contact: ['createdAt', 'name', 'phone', 'email', 'subject', 'status']
+};
+const ORDER = Object.keys(LABEL);
+
+let leads = [], tab = 'ProjectReview', flt = '', unsub = null;
+const $ = (s) => document.querySelector(s);
+
+const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) =>
+  ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const when = (t) => t && t.toDate
+  ? t.toDate().toLocaleString('en-KE', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+const status = (r) => r.v.status || 'New';
+const waNumber = (p) => { const d = String(p || '').replace(/\D/g, ''); return d[0] === '0' ? '254' + d.slice(1) : d; };
+
+// ---- sign in / out ----
+$('#signin').onclick = () => {
+  $('#err').textContent = '';
+  signInWithPopup(auth, new GoogleAuthProvider()).catch(() => {
+    $('#err').textContent = 'Sign-in was cancelled or blocked. Allow pop-ups and try again.';
+  });
+};
+$('#logout').onclick = () => signOut(auth);
+
+onAuthStateChanged(auth, (user) => {
+  if (unsub) { unsub(); unsub = null; }
+  if (user && user.email === ADMIN_EMAIL) {
+    $('#login').style.display = 'none'; $('#app').style.display = 'block';
+    unsub = onSnapshot(query(collection(db, 'leads'), orderBy('createdAt', 'desc')),
+      (snap) => { leads = snap.docs.map((d) => ({ id: d.id, v: d.data() })); render(); },
+      () => { signOut(auth); $('#err').textContent = 'Could not load leads. Check your Firestore rules.'; });
+  } else {
+    $('#app').style.display = 'none'; $('#login').style.display = 'block';
+    if (user) { $('#err').textContent = 'This Google account is not allowed.'; signOut(auth); }
+  }
+});
+
+// ---- list ----
+function render() {
+  document.querySelectorAll('.tab').forEach((t) => {
+    const mine = leads.filter((r) => r.v.type === t.dataset.tab && status(r) === 'New').length;
+    t.textContent = (t.dataset.tab === 'ProjectReview' ? 'Project reviews' : 'Contact messages') + (mine ? ' (' + mine + ' new)' : '');
+    t.setAttribute('aria-selected', t.dataset.tab === tab);
+  });
+  const all = leads.filter((r) => r.v.type === tab), q = $('#q').value.toLowerCase();
+  $('#chips').innerHTML = STATUSES.map((s) =>
+    '<button class="chip" aria-pressed="' + (flt === s) + '" data-s="' + esc(s) + '">' + esc(s) + ' ' +
+    all.filter((r) => status(r) === s).length + '</button>').join('');
+  const rows = all.filter((r) => (!flt || status(r) === flt) &&
+    (!q || JSON.stringify(r.v).toLowerCase().includes(q)));
+  $('#thead').innerHTML = '<tr>' + COLS[tab].map((c) => '<th>' + esc(c === 'status' ? 'Status' : LABEL[c]) + '</th>').join('') + '</tr>';
+  $('#tbody').innerHTML = rows.length ? rows.map((r) =>
+    '<tr data-id="' + esc(r.id) + '" class="' + (status(r) === 'New' ? 'new' : '') + '" tabindex="0">' +
+    COLS[tab].map((c) => {
+      if (c === 'status') { const s = status(r); return '<td><span class="st st-' + s.replace(/ /g, '-') + '">' + esc(s) + '</span></td>'; }
+      return '<td>' + esc(c === 'createdAt' ? when(r.v[c]) : r.v[c]) + '</td>';
+    }).join('') + '</tr>').join('')
+    : '<tr><td colspan="' + COLS[tab].length + '" class="empty">' +
+      (all.length ? 'No leads match your filters.' : 'No submissions yet. New form entries will appear here.') + '</td></tr>';
+}
+
+// ---- detail ----
+function openRow(id) {
+  const r = leads.find((x) => x.id === id); if (!r) return;
+  const v = r.v;
+  let links = '';
+  if (v.phone) links += '<a href="tel:' + esc(v.phone) + '">Call</a><a target="_blank" rel="noopener" href="https://wa.me/' + waNumber(v.phone) + '">WhatsApp</a>';
+  if (v.email) links += '<a href="mailto:' + esc(v.email) + '">Email</a>';
+  const dl = ORDER.filter((k) => v[k]).map((k) =>
+    '<dt>' + esc(LABEL[k]) + '</dt><dd>' + esc(k === 'createdAt' ? when(v[k]) : v[k]) + '</dd>').join('');
+  $('#detail').innerHTML = '<h2>' + esc(v.name || 'Lead') + '</h2><div class="links">' + links + '</div><dl>' + dl + '</dl>' +
+    '<label for="st">Status</label><select class="field" id="st">' +
+    STATUSES.map((s) => '<option' + (s === status(r) ? ' selected' : '') + '>' + s + '</option>').join('') + '</select>' +
+    '<label for="nt">Notes</label><textarea class="field" id="nt" maxlength="2000">' + esc(v.notes) + '</textarea>' +
+    '<div class="foot"><span id="msg" role="status"></span><button class="btn danger" id="del">Delete</button>' +
+    '<button class="btn ghost" id="close">Close</button><button class="btn" id="save">Save changes</button></div>';
+  $('#dlg').showModal();
+  $('#close').onclick = () => $('#dlg').close();
+  $('#save').onclick = (e) => {
+    e.target.disabled = true; $('#msg').textContent = 'Saving...';
+    updateDoc(doc(db, 'leads', r.id), { status: $('#st').value, notes: $('#nt').value })
+      .then(() => $('#dlg').close())
+      .catch(() => { $('#msg').textContent = 'Could not save. Try again.'; e.target.disabled = false; });
+  };
+  $('#del').onclick = () => {
+    if (!confirm('Delete this lead permanently?')) return;
+    deleteDoc(doc(db, 'leads', r.id)).then(() => $('#dlg').close())
+      .catch(() => { $('#msg').textContent = 'Could not delete. Try again.'; });
+  };
+}
+
+$('#q').addEventListener('input', render);
+$('.tabs').addEventListener('click', (e) => { const t = e.target.closest('.tab'); if (t) { tab = t.dataset.tab; flt = ''; render(); } });
+$('#chips').addEventListener('click', (e) => { const c = e.target.closest('.chip'); if (c) { flt = flt === c.dataset.s ? '' : c.dataset.s; render(); } });
+const rowClick = (e) => { const tr = e.target.closest('tr[data-id]'); if (tr) openRow(tr.dataset.id); };
+$('#tbody').addEventListener('click', rowClick);
+$('#tbody').addEventListener('keydown', (e) => { if (e.key === 'Enter') rowClick(e); });
+</script>
+</body>
+</html>
